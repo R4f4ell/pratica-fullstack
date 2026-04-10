@@ -1,0 +1,304 @@
+@use "../styles/variables" as *;
+
+.inventory-page {
+  min-height: 100vh;
+  background: $color-page-bg;
+  color: $color-text;
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+}
+
+.inventory-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 32px;
+  background: $color-surface;
+  box-shadow: 0 1px 0 $color-border;
+}
+
+.inventory-header-left,
+.inventory-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+
+.inventory-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.inventory-logo-icon {
+  color: $color-primary;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.inventory-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: $color-primary-soft;
+  color: $color-primary;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.inventory-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.inventory-table-wrap {
+  overflow: hidden;
+  border: 1px solid $color-border;
+  border-radius: 14px;
+  background: $color-surface;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inventory-table thead tr {
+  background: $color-table-head;
+  border-bottom: 2px solid $color-border;
+}
+
+.inventory-table th {
+  padding: 14px 20px;
+  text-align: center;
+  color: $color-muted;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.inventory-table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid $color-border;
+  color: $color-text;
+  font-size: 0.9rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.inventory-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.row-even {
+  background: $color-surface;
+}
+
+.row-odd {
+  background: $color-row-alt;
+}
+
+.cell-id,
+.cell-revenue {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.cell-id {
+  color: $color-muted;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cell-name,
+.cell-revenue {
+  font-weight: 600;
+}
+
+.cell-revenue {
+  color: $color-primary-dark;
+}
+
+.inventory-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.inventory-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.inventory-button:hover {
+  transform: translateY(-1px);
+}
+
+.inventory-button-primary {
+  min-width: 118px;
+  background: $color-primary;
+  color: $color-surface;
+  box-shadow: 0 2px 8px rgba(59, 110, 248, 0.3);
+}
+
+.inventory-button-primary:hover {
+  background: $color-primary-dark;
+}
+
+.inventory-button-outline-primary {
+  border-color: $color-primary;
+  background: transparent;
+  color: $color-primary;
+}
+
+.inventory-button-outline-primary:hover {
+  background: $color-primary;
+  color: $color-surface;
+}
+
+.inventory-button-outline-danger {
+  border-color: $color-danger;
+  background: transparent;
+  color: $color-danger;
+}
+
+.inventory-button-outline-danger:hover {
+  background: $color-danger;
+  color: $color-surface;
+}
+
+.inventory-button-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.inventory-search {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1.5px solid $color-border;
+  border-radius: 6px;
+  background: $color-surface;
+}
+
+.inventory-search:focus-within {
+  border-color: $color-primary;
+  box-shadow: 0 0 0 3px rgba(59, 110, 248, 0.12);
+}
+
+.inventory-search-input {
+  width: 220px;
+  padding: 8px 14px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: $color-text;
+  font: inherit;
+}
+
+.inventory-search-input::placeholder {
+  color: $color-muted-light;
+}
+
+.inventory-search-button {
+  padding: 8px 16px;
+  border: 0;
+  background: $color-primary;
+  color: $color-surface;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inventory-search-button:hover {
+  background: $color-primary-dark;
+}
+
+.inventory-empty {
+  padding: 48px;
+  text-align: center;
+  color: $color-muted;
+  font-size: 0.9rem;
+}
+
+.inventory-footer {
+  padding: 14px 20px;
+  border-top: 1px solid $color-border;
+  background: $color-footer-bg;
+  color: $color-muted;
+  font-size: 0.8rem;
+}
+
+.inventory-footer strong {
+  color: $color-text;
+}
+
+@media (max-width: 768px) {
+  .inventory-header {
+    padding: 14px 16px;
+  }
+
+  .inventory-main {
+    padding: 16px;
+  }
+
+  .inventory-header-left,
+  .inventory-header-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .inventory-search {
+    width: 100%;
+  }
+
+  .inventory-search-input {
+    width: 100%;
+  }
+
+  .inventory-table thead {
+    display: none;
+  }
+
+  .inventory-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    border-bottom: 2px solid $color-border;
+  }
+
+  .inventory-table td {
+    padding: 4px 8px;
+    border-bottom: 0;
+  }
+
+  .inventory-actions {
+    flex-wrap: wrap;
+  }
+}
