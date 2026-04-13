@@ -81,6 +81,3 @@ class ProductRepository:
 
         self._products.remove(product)
         return True
-
-    def generate_id(self) -> int:
-        return self._next_id

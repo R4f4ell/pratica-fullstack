@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import "./toast.scss";
 
 interface ToastProps {
@@ -9,14 +9,20 @@ interface ToastProps {
 }
 
 function Toast({ isVisible, type, message, onClose }: ToastProps) {
+  const handleClose = useEffectEvent(() => {
+    onClose();
+  });
+
   useEffect(() => {
     if (!isVisible) {
       return;
     }
 
-    const timeout = window.setTimeout(onClose, 3200);
+    const timeout = window.setTimeout(() => {
+      handleClose();
+    }, 3200);
     return () => window.clearTimeout(timeout);
-  }, [isVisible, onClose]);
+  }, [isVisible]);
 
   if (!isVisible) {
     return null;

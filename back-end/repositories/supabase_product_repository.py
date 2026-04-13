@@ -2,10 +2,7 @@ import httpx
 
 from core.supabase_client import supabase_client
 from models.product import Product
-
-
-class SupabaseRepositoryError(Exception):
-    pass
+from repositories.repository_errors import RepositoryError
 
 
 class SupabaseProductRepository:
@@ -53,16 +50,9 @@ class SupabaseProductRepository:
         )
 
         if not data:
-            raise SupabaseRepositoryError("Falha ao criar o produto no Supabase.")
+            raise RepositoryError("Falha ao criar o produto no Supabase.")
 
         return self._map_product(data[0])
-
-    def generate_id(self) -> int:
-        products = self.list_all()
-        if not products:
-            return 1
-
-        return max(product.id for product in products) + 1
 
     def update(self, product: Product) -> Product:
         data = self._request(
@@ -74,7 +64,7 @@ class SupabaseProductRepository:
         )
 
         if not data:
-            raise SupabaseRepositoryError("Falha ao atualizar o produto no Supabase.")
+            raise RepositoryError("Falha ao atualizar o produto no Supabase.")
 
         return self._map_product(data[0])
 
@@ -105,7 +95,7 @@ class SupabaseProductRepository:
             )
             response.raise_for_status()
         except httpx.HTTPError as error:
-            raise SupabaseRepositoryError("Erro na comunicacao com o Supabase.") from error
+            raise RepositoryError("Erro na comunicacao com o Supabase.") from error
 
         if not response.content:
             return []

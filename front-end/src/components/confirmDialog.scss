@@ -58,12 +58,18 @@
 
 .confirm-dialog-button {
   min-width: 118px;
+  min-height: 44px;
   padding: 10px 16px;
   border: 1px solid transparent;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
+}
+
+.confirm-dialog-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.9;
 }
 
 .confirm-dialog-button-secondary {
@@ -84,4 +90,19 @@
 
 .confirm-dialog-button-danger:hover {
   filter: brightness(0.95);
+}
+
+.confirm-dialog-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: $color-surface;
+  border-radius: 999px;
+  animation: confirm-dialog-spin 0.7s linear infinite;
+}
+
+@keyframes confirm-dialog-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

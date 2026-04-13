@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 
 from models.product import Product
 from repositories.product_repository_protocol import ProductRepositoryProtocol
-from repositories.supabase_product_repository import SupabaseRepositoryError
+from repositories.repository_errors import RepositoryError
 from schemas.product import ProductCreate, ProductResponse, ProductUpdate
 
 
@@ -14,7 +14,7 @@ class ProductService:
         try:
             products = self._repository.list_all(search)
             return [self._to_response(product) for product in products]
-        except SupabaseRepositoryError as error:
+        except RepositoryError as error:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Nao foi possivel listar os produtos.",
@@ -23,7 +23,7 @@ class ProductService:
     def get_product(self, product_id: int) -> ProductResponse:
         try:
             product = self._repository.get_by_id(product_id)
-        except SupabaseRepositoryError as error:
+        except RepositoryError as error:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Nao foi possivel buscar o produto.",
@@ -51,7 +51,7 @@ class ProductService:
             )
 
             created_product = self._repository.create(product)
-        except SupabaseRepositoryError as error:
+        except RepositoryError as error:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Nao foi possivel criar o produto.",
@@ -62,7 +62,7 @@ class ProductService:
     def update_product(self, product_id: int, data: ProductUpdate) -> ProductResponse:
         try:
             existing_product = self._repository.get_by_id(product_id)
-        except SupabaseRepositoryError as error:
+        except RepositoryError as error:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Nao foi possivel buscar o produto para atualizacao.",
@@ -108,7 +108,7 @@ class ProductService:
 
         try:
             saved_product = self._repository.update(updated_product)
-        except SupabaseRepositoryError as error:
+        except RepositoryError as error:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Nao foi possivel atualizar o produto.",
@@ -119,7 +119,7 @@ class ProductService:
     def delete_product(self, product_id: int) -> dict[str, str]:
         try:
             deleted = self._repository.delete(product_id)
-        except SupabaseRepositoryError as error:
+        except RepositoryError as error:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Nao foi possivel excluir o produto.",

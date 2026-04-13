@@ -1,159 +1,38 @@
-import { useEffect, useState } from "react";
 import "./inventario.scss";
-import type { Product, ProductFormData } from "../utils/types";
+import { useInventoryController } from "../hooks/useInventoryController";
 import ProductModal from "../components/ProductModal";
 import Toast from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
-import {
-  createProduct,
-  deleteProduct,
-  fetchProducts,
-  updateProduct,
-} from "../utils/productApi";
-
-interface ToastState {
-  isVisible: boolean;
-  type: "success" | "error";
-  message: string;
-}
 
 function Inventario() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [searchValue, setSearchValue] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [toast, setToast] = useState<ToastState>({
-    isVisible: false,
-    type: "success",
-    message: "",
-  });
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-
-  const filteredProducts = products.filter((product) =>
-    product.productName.toLowerCase().includes(searchValue.toLowerCase())
-  );
-
-  useEffect(() => {
-    void loadProducts();
-  }, []);
-
-  async function loadProducts() {
-    try {
-      const productsFromApi = await fetchProducts();
-      setProducts(productsFromApi);
-    } catch {
-      showToast("error", "Nao foi possivel carregar os produtos.");
-    }
-  }
-
-  function openCreateModal() {
-    setModalMode("create");
-    setSelectedProduct(null);
-    setIsModalOpen(true);
-  }
-
-  function openEditModal(product: Product) {
-    setModalMode("edit");
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  }
-
-  function closeModal() {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
-  }
-
-  function showToast(type: "success" | "error", message: string) {
-    setToast({
-      isVisible: true,
-      type,
-      message,
-    });
-  }
-
-  function closeToast() {
-    setToast((currentToast) => ({
-      ...currentToast,
-      isVisible: false,
-    }));
-  }
-
-  async function handleSaveProduct(data: ProductFormData) {
-    try {
-      if (!data.productName.trim()) {
-        throw new Error("Digite o nome do produto.");
-      }
-
-      if (modalMode === "edit" && selectedProduct) {
-        const updatedProduct = await updateProduct(selectedProduct.id, data);
-
-        setProducts((currentProducts) =>
-          currentProducts.map((product) =>
-            product.id === selectedProduct.id ? updatedProduct : product
-          )
-        );
-
-        showToast("success", "Produto atualizado com sucesso.");
-      } else {
-        const createdProduct = await createProduct(data);
-
-        setProducts((currentProducts) => [...currentProducts, createdProduct]);
-
-        showToast("success", "Produto criado com sucesso.");
-      }
-
-      closeModal();
-    } catch (error) {
-      showToast(
-        "error",
-        error instanceof Error
-          ? error.message
-          : modalMode === "edit"
-            ? "Nao foi possivel atualizar o produto."
-            : "Nao foi possivel criar o produto."
-      );
-    }
-  }
-
-  function openDeleteConfirm(product: Product) {
-    setProductToDelete(product);
-  }
-
-  function closeDeleteConfirm() {
-    setProductToDelete(null);
-  }
-
-  async function handleDeleteProduct() {
-    try {
-      if (!productToDelete) {
-        throw new Error();
-      }
-      await deleteProduct(productToDelete.id);
-
-      setProducts((currentProducts) =>
-        currentProducts.filter((product) => product.id !== productToDelete.id)
-      );
-
-      closeDeleteConfirm();
-      showToast("success", "Produto excluido com sucesso.");
-    } catch (error) {
-      closeDeleteConfirm();
-      showToast(
-        "error",
-        error instanceof Error
-          ? error.message
-          : "Nao foi possivel excluir o produto."
-      );
-    }
-  }
+  const {
+    products,
+    searchValue,
+    setSearchValue,
+    isLoadingProducts,
+    isSavingProduct,
+    isDeletingProduct,
+    isModalOpen,
+    modalMode,
+    selectedProduct,
+    toast,
+    productToDelete,
+    openCreateModal,
+    openEditModal,
+    closeModal,
+    closeToast,
+    handleSaveProduct,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    handleDeleteProduct,
+  } = useInventoryController();
 
   return (
     <div className="inventory-page">
       <header className="inventory-header">
         <div className="inventory-header-left">
           <h1 className="inventory-logo">
-            <span className="inventory-logo-icon">▦</span>
+            <span className="inventory-logo-icon">â–¦</span>
             Gerenciamento de Estoque
           </h1>
           <span className="inventory-badge">
@@ -195,52 +74,84 @@ function Inventario() {
                 <th>Produto</th>
                 <th>Quantidade em Estoque</th>
                 <th>Quantidade Vendida</th>
-                <th>Preco Unitário</th>
+                <th>Preco UnitÃ¡rio</th>
                 <th>Receita</th>
-                <th>Ações</th>
+                <th>AÃ§Ãµes</th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredProducts.map((product, index) => (
-                <tr key={product.id} className={index % 2 === 0 ? "row-even" : "row-odd"}>
-                  <td className="cell-id">{product.id}</td>
-                  <td className="cell-name">{product.productName}</td>
-                  <td>{product.quantityInStock.toLocaleString()}</td>
-                  <td>{product.quantitySold.toLocaleString()}</td>
-                  <td>{product.unitPrice.toLocaleString()}</td>
-                  <td className="cell-revenue">{product.revenue.toLocaleString()}</td>
-                  <td>
-                    <div className="inventory-actions">
-                      <button
-                        className="inventory-button inventory-button-outline-primary"
-                        type="button"
-                        onClick={() => openEditModal(product)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="inventory-button inventory-button-outline-danger"
-                        type="button"
-                        onClick={() => openDeleteConfirm(product)}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {isLoadingProducts
+                ? Array.from({ length: 5 }).map((_, index) => (
+                    <tr key={`skeleton-${index}`} className={index % 2 === 0 ? "row-even" : "row-odd"}>
+                      <td className="inventory-skeleton-cell">
+                        <div className="inventory-skeleton-line inventory-skeleton-line-id" />
+                      </td>
+                      <td className="inventory-skeleton-cell">
+                        <div className="inventory-skeleton-line inventory-skeleton-line-name" />
+                      </td>
+                      <td className="inventory-skeleton-cell">
+                        <div className="inventory-skeleton-line inventory-skeleton-line-number" />
+                      </td>
+                      <td className="inventory-skeleton-cell">
+                        <div className="inventory-skeleton-line inventory-skeleton-line-number" />
+                      </td>
+                      <td className="inventory-skeleton-cell">
+                        <div className="inventory-skeleton-line inventory-skeleton-line-number" />
+                      </td>
+                      <td className="inventory-skeleton-cell">
+                        <div className="inventory-skeleton-line inventory-skeleton-line-number" />
+                      </td>
+                      <td className="inventory-skeleton-cell">
+                        <div className="inventory-skeleton-line inventory-skeleton-line-action" />
+                      </td>
+                    </tr>
+                  ))
+                : products.map((product, index) => (
+                    <tr key={product.id} className={index % 2 === 0 ? "row-even" : "row-odd"}>
+                      <td className="cell-id">{product.id}</td>
+                      <td className="cell-name">{product.productName}</td>
+                      <td>{product.quantityInStock.toLocaleString()}</td>
+                      <td>{product.quantitySold.toLocaleString()}</td>
+                      <td>{product.unitPrice.toLocaleString()}</td>
+                      <td className="cell-revenue">{product.revenue.toLocaleString()}</td>
+                      <td>
+                        <div className="inventory-actions">
+                          <button
+                            className="inventory-button inventory-button-outline-primary"
+                            type="button"
+                            onClick={() => openEditModal(product)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="inventory-button inventory-button-outline-danger"
+                            type="button"
+                            onClick={() => openDeleteConfirm(product)}
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
 
-          {filteredProducts.length === 0 && (
-            <div className="inventory-empty">Nenhum produto encontrado para "{searchValue}"</div>
+          {!isLoadingProducts && products.length === 0 && (
+            <div className="inventory-empty">
+              {!searchValue.trim()
+                ? "Sua lista de produtos ainda estÃ¡ vazia"
+                : `Nenhum resultado encontrado para "${searchValue}"`}
+            </div>
           )}
         </div>
 
-        <footer className="inventory-footer">
-          Exibindo <strong>{filteredProducts.length}</strong> de <strong>{products.length}</strong> produtos
-        </footer>
+        {!isLoadingProducts && products.length > 0 && (
+          <footer className="inventory-footer">
+            Exibindo <strong>{products.length}</strong> produtos
+          </footer>
+        )}
       </main>
 
       <ProductModal
@@ -249,6 +160,7 @@ function Inventario() {
         initialProduct={selectedProduct}
         onClose={closeModal}
         onSave={handleSaveProduct}
+        isSubmitting={isSavingProduct}
       />
 
       <ConfirmDialog
@@ -262,6 +174,7 @@ function Inventario() {
         confirmLabel="Excluir"
         onConfirm={handleDeleteProduct}
         onCancel={closeDeleteConfirm}
+        isSubmitting={isDeletingProduct}
       />
 
       <Toast

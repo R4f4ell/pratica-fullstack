@@ -102,6 +102,44 @@
   vertical-align: middle;
 }
 
+.inventory-skeleton-cell {
+  padding: 15px 20px;
+}
+
+.inventory-skeleton-line {
+  height: 16px;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0.9) 0%,
+    rgba(240, 244, 255, 1) 50%,
+    rgba(226, 232, 240, 0.9) 100%
+  );
+  background-size: 220% 100%;
+  animation: inventory-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+.inventory-skeleton-line-id {
+  width: 44px;
+  margin: 0 auto;
+}
+
+.inventory-skeleton-line-name {
+  width: 120px;
+  margin: 0 auto;
+}
+
+.inventory-skeleton-line-number {
+  width: 80px;
+  margin: 0 auto;
+}
+
+.inventory-skeleton-line-action {
+  width: 148px;
+  margin: 0 auto;
+}
+
 .inventory-table tbody tr:last-child td {
   border-bottom: 0;
 }
@@ -257,6 +295,16 @@
 
 .inventory-footer strong {
   color: $color-text;
+}
+
+@keyframes inventory-skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -20% 0;
+  }
 }
 
 @media (max-width: 768px) {

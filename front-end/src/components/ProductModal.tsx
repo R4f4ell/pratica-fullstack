@@ -8,6 +8,7 @@ interface ProductModalProps {
   initialProduct: Product | null;
   onClose: () => void;
   onSave: (data: ProductFormData) => Promise<void> | void;
+  isSubmitting?: boolean;
 }
 
 const emptyForm: ProductFormData = {
@@ -23,6 +24,7 @@ function ProductModal({
   initialProduct,
   onClose,
   onSave,
+  isSubmitting = false,
 }: ProductModalProps) {
   const [formData, setFormData] = useState<ProductFormData>(emptyForm);
 
@@ -62,7 +64,14 @@ function ProductModal({
     (Number(formData.quantitySold) || 0) * (Number(formData.unitPrice) || 0);
 
   return (
-    <div className="product-modal-overlay" onClick={onClose}>
+    <div
+      className="product-modal-overlay"
+      onClick={() => {
+        if (!isSubmitting) {
+          onClose();
+        }
+      }}
+    >
       <div
         className="product-modal"
         onClick={(event) => event.stopPropagation()}
@@ -82,6 +91,7 @@ function ProductModal({
             type="button"
             onClick={onClose}
             aria-label="Fechar modal"
+            disabled={isSubmitting}
           >
             ×
           </button>
@@ -96,6 +106,7 @@ function ProductModal({
               value={formData.productName}
               onChange={handleChange}
               placeholder="Digite o nome do produto"
+              disabled={isSubmitting}
             />
           </label>
 
@@ -109,6 +120,7 @@ function ProductModal({
                 value={formData.quantityInStock}
                 onChange={handleChange}
                 placeholder="0"
+                disabled={isSubmitting}
               />
             </label>
 
@@ -121,6 +133,7 @@ function ProductModal({
                 value={formData.quantitySold}
                 onChange={handleChange}
                 placeholder="0"
+                disabled={isSubmitting}
               />
             </label>
           </div>
@@ -135,6 +148,7 @@ function ProductModal({
               value={formData.unitPrice}
               onChange={handleChange}
               placeholder="0.00"
+              disabled={isSubmitting}
             />
           </label>
 
@@ -147,6 +161,7 @@ function ProductModal({
               className="product-modal-button product-modal-button-secondary"
               type="button"
               onClick={onClose}
+              disabled={isSubmitting}
             >
               Cancelar
             </button>
@@ -154,8 +169,10 @@ function ProductModal({
             <button
               className="product-modal-button product-modal-button-primary"
               type="submit"
+              disabled={isSubmitting}
+              aria-label={mode === "create" ? "Salvando produto" : "Salvando alteracoes"}
             >
-              {mode === "create" ? "Salvar produto" : "Salvar alterações"}
+              {isSubmitting ? <span className="product-modal-spinner" /> : mode === "create" ? "Salvar produto" : "Salvar alterações"}
             </button>
           </div>
         </form>

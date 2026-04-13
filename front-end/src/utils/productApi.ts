@@ -1,4 +1,4 @@
-import type { Product } from "./types";
+import type { Product, ProductFormData } from "./types";
 
 interface ApiProduct {
   id: number;
@@ -16,7 +16,8 @@ interface ProductInput {
   unit_price: number;
 }
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 function toProduct(apiProduct: ApiProduct): Product {
   return {
@@ -29,12 +30,7 @@ function toProduct(apiProduct: ApiProduct): Product {
   };
 }
 
-function toProductInput(product: {
-  productName: string;
-  quantityInStock: string;
-  quantitySold: string;
-  unitPrice: string;
-}): ProductInput {
+function toProductInput(product: ProductFormData): ProductInput {
   return {
     product_name: product.productName.trim(),
     quantity_in_stock: Number(product.quantityInStock) || 0,
@@ -62,18 +58,22 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function fetchProducts(): Promise<Product[]> {
-  const response = await fetch(`${API_BASE_URL}/products/`);
+export async function fetchProducts(search?: string): Promise<Product[]> {
+  const params = new URLSearchParams();
+
+  if (search && search.trim()) {
+    params.set("search", search.trim());
+  }
+
+  const queryString = params.toString();
+  const response = await fetch(
+    `${API_BASE_URL}/products/${queryString ? `?${queryString}` : ""}`
+  );
   const data = await handleResponse<ApiProduct[]>(response);
   return data.map(toProduct);
 }
 
-export async function createProduct(product: {
-  productName: string;
-  quantityInStock: string;
-  quantitySold: string;
-  unitPrice: string;
-}): Promise<Product> {
+export async function createProduct(product: ProductFormData): Promise<Product> {
   const response = await fetch(`${API_BASE_URL}/products/`, {
     method: "POST",
     headers: {
@@ -88,12 +88,7 @@ export async function createProduct(product: {
 
 export async function updateProduct(
   productId: number,
-  product: {
-    productName: string;
-    quantityInStock: string;
-    quantitySold: string;
-    unitPrice: string;
-}
+  product: ProductFormData
 ): Promise<Product> {
   const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
     method: "PATCH",
