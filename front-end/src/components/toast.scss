@@ -1,0 +1,89 @@
+@use "../styles/variables" as *;
+
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 40;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100vw - 48px);
+  padding: 12px 14px 12px 12px;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.toast-success {
+  border-color: rgba(59, 110, 248, 0.16);
+}
+
+.toast-error {
+  border-color: rgba(229, 62, 62, 0.18);
+}
+
+.toast-accent {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.03);
+}
+
+.toast-accent-success {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+}
+
+.toast-accent-error {
+  background: linear-gradient(135deg, #ff6b6b 0%, $color-danger 100%);
+}
+
+.toast-message {
+  color: $color-text;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.toast-close {
+  border: 0;
+  background: transparent;
+  color: $color-muted;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 1px;
+}
+
+.toast-close:hover {
+  color: $color-text;
+}
+
+@media (max-width: 640px) {
+  .toast-container {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+  }
+
+  .toast {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .toast-message {
+    white-space: normal;
+  }
+}
