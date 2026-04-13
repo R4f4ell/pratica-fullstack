@@ -93,10 +93,10 @@ export async function updateProduct(
     quantityInStock: string;
     quantitySold: string;
     unitPrice: string;
-  }
+}
 ): Promise<Product> {
   const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
-    method: "PUT",
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },

@@ -54,9 +54,17 @@ class ProductRepository:
         return next((product for product in self._products if product.id == product_id), None)
 
     def create(self, product: Product) -> Product:
-        self._products.append(product)
+        created_product = Product(
+            id=product.id if product.id > 0 else self._next_id,
+            product_name=product.product_name,
+            quantity_in_stock=product.quantity_in_stock,
+            quantity_sold=product.quantity_sold,
+            unit_price=product.unit_price,
+            revenue=product.revenue,
+        )
+        self._products.append(created_product)
         self._next_id += 1
-        return product
+        return created_product
 
     def update(self, product: Product) -> Product:
         for index, current_product in enumerate(self._products):

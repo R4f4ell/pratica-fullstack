@@ -1,13 +1,13 @@
 from fastapi import HTTPException, status
 
 from models.product import Product
-from repositories.product_repository import ProductRepository
+from repositories.product_repository_protocol import ProductRepositoryProtocol
 from repositories.supabase_product_repository import SupabaseRepositoryError
 from schemas.product import ProductCreate, ProductResponse, ProductUpdate
 
 
 class ProductService:
-    def __init__(self, repository: ProductRepository) -> None:
+    def __init__(self, repository: ProductRepositoryProtocol) -> None:
         self._repository = repository
 
     def list_products(self, search: str | None = None) -> list[ProductResponse]:
@@ -41,10 +41,8 @@ class ProductService:
         self._validate_quantities(data.quantity_in_stock, data.quantity_sold)
 
         try:
-            next_id = self._generate_next_id()
-
             product = Product(
-                id=next_id,
+                id=0,
                 product_name=data.product_name,
                 quantity_in_stock=data.quantity_in_stock,
                 quantity_sold=data.quantity_sold,
@@ -76,15 +74,36 @@ class ProductService:
                 detail="Produto nao encontrado.",
             )
 
-        self._validate_quantities(data.quantity_in_stock, data.quantity_sold)
+        product_name = (
+            data.product_name
+            if data.product_name is not None
+            else existing_product.product_name
+        )
+        quantity_in_stock = (
+            data.quantity_in_stock
+            if data.quantity_in_stock is not None
+            else existing_product.quantity_in_stock
+        )
+        quantity_sold = (
+            data.quantity_sold
+            if data.quantity_sold is not None
+            else existing_product.quantity_sold
+        )
+        unit_price = (
+            data.unit_price
+            if data.unit_price is not None
+            else existing_product.unit_price
+        )
+
+        self._validate_quantities(quantity_in_stock, quantity_sold)
 
         updated_product = Product(
             id=existing_product.id,
-            product_name=data.product_name,
-            quantity_in_stock=data.quantity_in_stock,
-            quantity_sold=data.quantity_sold,
-            unit_price=data.unit_price,
-            revenue=self._calculate_revenue(data.quantity_sold, data.unit_price),
+            product_name=product_name,
+            quantity_in_stock=quantity_in_stock,
+            quantity_sold=quantity_sold,
+            unit_price=unit_price,
+            revenue=self._calculate_revenue(quantity_sold, unit_price),
         )
 
         try:
@@ -123,16 +142,6 @@ class ProductService:
 
     def _calculate_revenue(self, quantity_sold: int, unit_price: float) -> float:
         return quantity_sold * unit_price
-
-    def _generate_next_id(self) -> int:
-        if hasattr(self._repository, "generate_id"):
-            return self._repository.generate_id()
-
-        products = self._repository.list_all()
-        if not products:
-            return 1
-
-        return max(product.id for product in products) + 1
 
     def _to_response(self, product: Product) -> ProductResponse:
         return ProductResponse(

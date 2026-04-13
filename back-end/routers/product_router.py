@@ -25,7 +25,7 @@ def create_product(data: ProductCreate) -> ProductResponse:
     return product_service.create_product(data)
 
 
-@router.put("/{product_id}", response_model=ProductResponse, status_code=status.HTTP_200_OK)
+@router.patch("/{product_id}", response_model=ProductResponse, status_code=status.HTTP_200_OK)
 def update_product(product_id: int, data: ProductUpdate) -> ProductResponse:
     return product_service.update_product(product_id, data)
 
