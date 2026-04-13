@@ -1,20 +1,13 @@
 import { useEffect, useState } from "react";
 import "./productModal.scss";
-import type { Product } from "../utils/types";
-
-interface ProductFormData {
-  productName: string;
-  quantityInStock: string;
-  quantitySold: string;
-  unitPrice: string;
-}
+import type { Product, ProductFormData } from "../utils/types";
 
 interface ProductModalProps {
   isOpen: boolean;
   mode: "create" | "edit";
   initialProduct: Product | null;
   onClose: () => void;
-  onSave: (data: ProductFormData) => void;
+  onSave: (data: ProductFormData) => Promise<void> | void;
 }
 
 const emptyForm: ProductFormData = {
@@ -62,7 +55,7 @@ function ProductModal({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSave(formData);
+    void onSave(formData);
   }
 
   const estimatedRevenue =

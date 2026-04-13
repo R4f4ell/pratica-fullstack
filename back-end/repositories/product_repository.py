@@ -39,8 +39,16 @@ class ProductRepository:
         ]
         self._next_id = 27
 
-    def list_all(self) -> list[Product]:
-        return self._products
+    def list_all(self, search: str | None = None) -> list[Product]:
+        if not search:
+            return self._products
+
+        normalized_search = search.lower().strip()
+        return [
+            product
+            for product in self._products
+            if normalized_search in product.product_name.lower()
+        ]
 
     def get_by_id(self, product_id: int) -> Product | None:
         return next((product for product in self._products if product.id == product_id), None)

@@ -1,6 +1,10 @@
-from fastapi.testclient import TestClient
-import pytest
+import os
 
+import pytest
+from fastapi.testclient import TestClient
+
+os.environ.setdefault("SUPABASE_URL", "http://localhost")
+os.environ.setdefault("SUPABASE_KEY", "test-key")
 from main import app
 from repositories.product_repository import ProductRepository
 from routers import product_router

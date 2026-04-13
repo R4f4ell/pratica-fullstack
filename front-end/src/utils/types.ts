@@ -6,3 +6,10 @@ export interface Product {
   unitPrice: number;
   revenue: number;
 }
+
+export interface ProductFormData {
+  productName: string;
+  quantityInStock: string;
+  quantitySold: string;
+  unitPrice: string;
+}

@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./inventario.scss";
-import { mockProducts } from "../utils/mockProducts";
-import type { Product } from "../utils/types";
+import type { Product, ProductFormData } from "../utils/types";
 import ProductModal from "../components/ProductModal";
 import Toast from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import {
+  createProduct,
+  deleteProduct,
+  fetchProducts,
+  updateProduct,
+} from "../utils/productApi";
 
 interface ToastState {
   isVisible: boolean;
@@ -13,7 +18,7 @@ interface ToastState {
 }
 
 function Inventario() {
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -28,6 +33,19 @@ function Inventario() {
   const filteredProducts = products.filter((product) =>
     product.productName.toLowerCase().includes(searchValue.toLowerCase())
   );
+
+  useEffect(() => {
+    void loadProducts();
+  }, []);
+
+  async function loadProducts() {
+    try {
+      const productsFromApi = await fetchProducts();
+      setProducts(productsFromApi);
+    } catch {
+      showToast("error", "Nao foi possivel carregar os produtos.");
+    }
+  }
 
   function openCreateModal() {
     setModalMode("create");
@@ -61,65 +79,40 @@ function Inventario() {
     }));
   }
 
-  function handleSaveProduct(data: {
-    productName: string;
-    quantityInStock: string;
-    quantitySold: string;
-    unitPrice: string;
-  }) {
+  async function handleSaveProduct(data: ProductFormData) {
     try {
       if (!data.productName.trim()) {
         throw new Error("Digite o nome do produto.");
       }
 
-      const quantityInStock = Number(data.quantityInStock) || 0;
-      const quantitySold = Number(data.quantitySold) || 0;
-      const unitPrice = Number(data.unitPrice) || 0;
-      const revenue = quantitySold * unitPrice;
-
       if (modalMode === "edit" && selectedProduct) {
+        const updatedProduct = await updateProduct(selectedProduct.id, data);
+
         setProducts((currentProducts) =>
           currentProducts.map((product) =>
-            product.id === selectedProduct.id
-              ? {
-                  ...product,
-                  productName: data.productName.trim(),
-                  quantityInStock,
-                  quantitySold,
-                  unitPrice,
-                  revenue,
-                }
-              : product
+            product.id === selectedProduct.id ? updatedProduct : product
           )
         );
 
         showToast("success", "Produto atualizado com sucesso.");
       } else {
-        const nextId =
-          products.length > 0
-            ? Math.max(...products.map((product) => product.id)) + 1
-            : 1;
+        const createdProduct = await createProduct(data);
 
-        setProducts((currentProducts) => [
-          ...currentProducts,
-          {
-            id: nextId,
-            productName: data.productName.trim(),
-            quantityInStock,
-            quantitySold,
-            unitPrice,
-            revenue,
-          },
-        ]);
+        setProducts((currentProducts) => [...currentProducts, createdProduct]);
 
         showToast("success", "Produto criado com sucesso.");
       }
 
       closeModal();
-    } catch {
-      showToast("error", modalMode === "edit"
-        ? "Nao foi possivel atualizar o produto."
-        : "Nao foi possivel criar o produto.");
+    } catch (error) {
+      showToast(
+        "error",
+        error instanceof Error
+          ? error.message
+          : modalMode === "edit"
+            ? "Nao foi possivel atualizar o produto."
+            : "Nao foi possivel criar o produto."
+      );
     }
   }
 
@@ -131,17 +124,12 @@ function Inventario() {
     setProductToDelete(null);
   }
 
-  function handleDeleteProduct() {
+  async function handleDeleteProduct() {
     try {
       if (!productToDelete) {
         throw new Error();
       }
-
-      const hasProduct = products.some((product) => product.id === productToDelete.id);
-
-      if (!hasProduct) {
-        throw new Error();
-      }
+      await deleteProduct(productToDelete.id);
 
       setProducts((currentProducts) =>
         currentProducts.filter((product) => product.id !== productToDelete.id)
@@ -149,9 +137,14 @@ function Inventario() {
 
       closeDeleteConfirm();
       showToast("success", "Produto excluido com sucesso.");
-    } catch {
+    } catch (error) {
       closeDeleteConfirm();
-      showToast("error", "Nao foi possivel excluir o produto.");
+      showToast(
+        "error",
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel excluir o produto."
+      );
     }
   }
 

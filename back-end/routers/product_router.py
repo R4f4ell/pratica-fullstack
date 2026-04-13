@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Query, status
 
-from repositories.product_repository import ProductRepository
+from repositories.supabase_product_repository import SupabaseProductRepository
 from schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from services.product_service import ProductService
 
 router = APIRouter(prefix="/products", tags=["Produtos"])
 
-product_repository = ProductRepository()
+product_repository = SupabaseProductRepository()
 product_service = ProductService(product_repository)
 
 

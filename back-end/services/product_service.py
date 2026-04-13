@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 
 from models.product import Product
 from repositories.product_repository import ProductRepository
+from repositories.supabase_product_repository import SupabaseRepositoryError
 from schemas.product import ProductCreate, ProductResponse, ProductUpdate
 
 
@@ -10,20 +11,24 @@ class ProductService:
         self._repository = repository
 
     def list_products(self, search: str | None = None) -> list[ProductResponse]:
-        products = self._repository.list_all()
-
-        if search:
-            normalized_search = search.lower().strip()
-            products = [
-                product
-                for product in products
-                if normalized_search in product.product_name.lower()
-            ]
-
-        return [self._to_response(product) for product in products]
+        try:
+            products = self._repository.list_all(search)
+            return [self._to_response(product) for product in products]
+        except SupabaseRepositoryError as error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Nao foi possivel listar os produtos.",
+            ) from error
 
     def get_product(self, product_id: int) -> ProductResponse:
-        product = self._repository.get_by_id(product_id)
+        try:
+            product = self._repository.get_by_id(product_id)
+        except SupabaseRepositoryError as error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Nao foi possivel buscar o produto.",
+            ) from error
+
         if product is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -35,20 +40,36 @@ class ProductService:
     def create_product(self, data: ProductCreate) -> ProductResponse:
         self._validate_quantities(data.quantity_in_stock, data.quantity_sold)
 
-        product = Product(
-            id=self._repository.generate_id(),
-            product_name=data.product_name,
-            quantity_in_stock=data.quantity_in_stock,
-            quantity_sold=data.quantity_sold,
-            unit_price=data.unit_price,
-            revenue=self._calculate_revenue(data.quantity_sold, data.unit_price),
-        )
+        try:
+            next_id = self._generate_next_id()
 
-        created_product = self._repository.create(product)
+            product = Product(
+                id=next_id,
+                product_name=data.product_name,
+                quantity_in_stock=data.quantity_in_stock,
+                quantity_sold=data.quantity_sold,
+                unit_price=data.unit_price,
+                revenue=self._calculate_revenue(data.quantity_sold, data.unit_price),
+            )
+
+            created_product = self._repository.create(product)
+        except SupabaseRepositoryError as error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Nao foi possivel criar o produto.",
+            ) from error
+
         return self._to_response(created_product)
 
     def update_product(self, product_id: int, data: ProductUpdate) -> ProductResponse:
-        existing_product = self._repository.get_by_id(product_id)
+        try:
+            existing_product = self._repository.get_by_id(product_id)
+        except SupabaseRepositoryError as error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Nao foi possivel buscar o produto para atualizacao.",
+            ) from error
+
         if existing_product is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -66,11 +87,25 @@ class ProductService:
             revenue=self._calculate_revenue(data.quantity_sold, data.unit_price),
         )
 
-        self._repository.update(updated_product)
-        return self._to_response(updated_product)
+        try:
+            saved_product = self._repository.update(updated_product)
+        except SupabaseRepositoryError as error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Nao foi possivel atualizar o produto.",
+            ) from error
+
+        return self._to_response(saved_product)
 
     def delete_product(self, product_id: int) -> dict[str, str]:
-        deleted = self._repository.delete(product_id)
+        try:
+            deleted = self._repository.delete(product_id)
+        except SupabaseRepositoryError as error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Nao foi possivel excluir o produto.",
+            ) from error
+
         if not deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -88,6 +123,16 @@ class ProductService:
 
     def _calculate_revenue(self, quantity_sold: int, unit_price: float) -> float:
         return quantity_sold * unit_price
+
+    def _generate_next_id(self) -> int:
+        if hasattr(self._repository, "generate_id"):
+            return self._repository.generate_id()
+
+        products = self._repository.list_all()
+        if not products:
+            return 1
+
+        return max(product.id for product in products) + 1
 
     def _to_response(self, product: Product) -> ProductResponse:
         return ProductResponse(
